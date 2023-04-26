@@ -1,0 +1,62 @@
+FUNCTION_BLOCK DiagnosticoMedico
+VAR_INPUT
+    temperatura : REAL;
+    dor_corpo : REAL;
+    dor_cabeca : REAL;
+    falta_ar : REAL;
+END_VAR
+VAR_OUTPUT
+    doenca : REAL;
+    gravidade : REAL;
+END_VAR
+
+FUZZIFY temperatura
+    TERM normal := (35, 0) (36.5, 1) (37, 1) (38, 0);
+    TERM elevada := (37, 0) (38, 1) (39, 0);
+    TERM alta := (38, 0) (40, 1);
+END_FUZZIFY
+
+FUZZIFY dor_corpo
+    TERM baixa := (0, 1) (2, 0);
+    TERM moderada := (1, 0) (3, 1) (5, 0);
+    TERM alta := (4, 0) (10, 1);
+END_FUZZIFY
+
+FUZZIFY dor_cabeca
+    TERM baixa := (0, 1) (2, 0);
+    TERM moderada := (1, 0) (3, 1) (5, 0);
+    TERM alta := (4, 0) (10, 1);
+END_FUZZIFY
+
+FUZZIFY falta_ar
+    TERM normal := (0, 1) (10, 0);
+    TERM elevada := (5, 0) (15, 1) (20, 0);
+    TERM alta := (15, 0) (30, 1);
+END_FUZZIFY
+
+DEFUZZIFY doenca
+    TERM sem_doenca := (0, 1) (10, 0);
+    TERM gripe := (5, 0) (15, 1) (20, 0);
+    TERM pneumonia := (15, 0) (30, 1);
+    METHOD : COG;
+END_DEFUZZIFY
+
+DEFUZZIFY gravidade
+    TERM leve := (0, 1) (3, 0);
+    TERM moderado := (2, 0) (5, 1) (8, 0);
+    TERM grave := (6, 0) (10, 1);
+    METHOD : COG;
+END_DEFUZZIFY
+
+RULEBLOCK regras
+    AND : MIN;
+    ACT : MIN;
+    ACCU : MAX;
+    RULE 1 : IF temperatura IS normal AND dor_corpo IS baixa THEN doenca IS sem_doenca;
+    RULE 2:  IF dor_cabeca IS baixa AND falta_ar IS normal THEN gravidade IS leve; 
+    RULE 3 : IF temperatura IS elevada AND dor_corpo IS moderada THEN doenca IS gripe; 
+    RULE 4 : IF dor_cabeca IS moderada AND falta_ar IS elevada THEN gravidade IS moderado;
+    RULE 5 : IF temperatura IS alta AND dor_corpo IS alta THEN gravidade IS grave; 
+    RULE 6 : IF dor_cabeca IS alta AND falta_ar IS alta THEN doenca IS pneumonia;
+END_RULEBLOCK
+END_FUNCTION_BLOCK
